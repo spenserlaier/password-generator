@@ -1,5 +1,6 @@
 mod generation_logic;
 mod cli;
+mod database;
 use std::{env};
 fn main() {
     println!("Hello, world!");
@@ -8,6 +9,16 @@ fn main() {
     // remember that args[0] will be the path to the executable
     for arg in &args {
         println!("{}", arg);
+    }
+    let conn = database::create_connection();
+    match  database::initialize_db(&conn) {
+        Ok(_) => {
+            println!("database initialization successful" );
+        }
+        Err(x) => {
+            println!("something went wrong when initializing the database:");
+            println!("{}", x)
+        }
     }
     if args.len() >= 2{
         args.remove(0);
@@ -31,9 +42,5 @@ fn main() {
     }
     else{
         println!("No options provided. Creating a password using default settings...");
-
-
-
-
     }
 }
