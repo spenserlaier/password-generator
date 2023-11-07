@@ -2,7 +2,6 @@ use random_word;
 use std::collections::HashSet;
 use rand;
 use rand::Rng;
-use std::env;
 pub fn generate_random_char(start: char, end:char) -> char {
     let mut rng = rand::thread_rng();
     let random_char : char = rng.gen_range(start..=end);
@@ -43,6 +42,22 @@ impl GenerationData {
             use_words,
         }
     }
+    /*
+    pub fn get_settings() -> GenerationData {
+        let minimum_length = if let Some(min_length) = minimum_length{min_length} else {8};
+        let include_numbers = if let Some(include_nums) = include_numbers{include_nums} else {false};
+        let include_special = if let Some(include_spec) = include_special{include_spec} else {false};
+        let include_ucase = if let Some(include_u) = include_ucase{include_u} else {false};
+        let use_words = if let Some(use_wrds) = use_words{use_wrds} else {true};
+        GenerationData{
+            minimum_length,
+            include_numbers,
+            include_special,
+            include_ucase,
+            use_words,
+        }
+    }
+    */
     pub fn generate_password(&self) -> String{
         let mut password = String::new();
         let mut used_words = HashSet::new();
