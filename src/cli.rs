@@ -6,7 +6,7 @@ pub enum ArgType {
     IncludeSpecial,
     IncludeUcase,
     UseWords,
-    Error
+    Error,
 }
 #[derive(PartialEq, Debug)]
 pub enum ArgValue {
@@ -117,7 +117,11 @@ pub fn construct_features_from_arguments(arguments: Vec<Argument>) -> Generation
             Argument::Error => { continue }
         }
     }
-    GenerationData::new(minimum_length, include_numbers, include_special, include_ucase, use_words)
+    GenerationData::new(Some(minimum_length), 
+                        Some(include_numbers), 
+                        Some(include_special), 
+                        Some(include_ucase), 
+                        Some(use_words))
 }
 #[cfg(test)]
 mod tests {

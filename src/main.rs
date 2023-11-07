@@ -11,6 +11,14 @@ fn main() {
     }
     if args.len() >= 2{
         args.remove(0);
+        if args.contains(&String::from("--help")) {
+            println!("help arg detected");
+            //TODO: better way to handle detection of the help option
+        }
+        else{
+
+
+        }
         let parsed_arguments = cli::parse_args(args);
         // TODO: tests (ex. cargo run --minlength 8)
         for arg in &parsed_arguments{
@@ -20,5 +28,12 @@ fn main() {
         let password = generation_features.generate_password();
         println!("printing the newly generated password: ");
         println!("{}", password);
+    }
+    else{
+        println!("No options provided. Creating a password using default settings...");
+
+
+
+
     }
 }
