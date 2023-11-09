@@ -25,39 +25,36 @@ pub struct GenerationData {
     include_special: bool,
     include_ucase: bool,
     use_words: bool,
+    profile: Option<String>,
+    overwrite: bool,
+
 }
 impl GenerationData {
-    pub fn new(minimum_length: Option<usize>, include_numbers: Option<bool>, include_special: Option<bool>, include_ucase: Option<bool>, use_words: Option<bool>) -> GenerationData{
+    pub fn new(minimum_length: Option<usize>, 
+               include_numbers: Option<bool>, 
+               include_special: Option<bool>, 
+               include_ucase: Option<bool>, 
+               use_words: Option<bool>,
+               profile: Option<String>,
+               overwrite: Option<bool>
+               )-> GenerationData{
         let minimum_length = if let Some(min_length) = minimum_length{min_length} else {8};
         let include_numbers = if let Some(include_nums) = include_numbers{include_nums} else {false};
         let include_special = if let Some(include_spec) = include_special{include_spec} else {false};
         let include_ucase = if let Some(include_u) = include_ucase{include_u} else {false};
         let use_words = if let Some(use_wrds) = use_words{use_wrds} else {true};
-
+        // let profile = if let Some(prof) = profile{} else None;
+        let overwrite = if let Some(overw) = overwrite{overw} else {false};
         GenerationData{
             minimum_length,
             include_numbers,
             include_special,
             include_ucase,
             use_words,
+            profile,
+            overwrite
         }
     }
-    /*
-    pub fn get_settings() -> GenerationData {
-        let minimum_length = if let Some(min_length) = minimum_length{min_length} else {8};
-        let include_numbers = if let Some(include_nums) = include_numbers{include_nums} else {false};
-        let include_special = if let Some(include_spec) = include_special{include_spec} else {false};
-        let include_ucase = if let Some(include_u) = include_ucase{include_u} else {false};
-        let use_words = if let Some(use_wrds) = use_words{use_wrds} else {true};
-        GenerationData{
-            minimum_length,
-            include_numbers,
-            include_special,
-            include_ucase,
-            use_words,
-        }
-    }
-    */
     pub fn generate_password(&self) -> String{
         let mut password = String::new();
         let mut used_words = HashSet::new();

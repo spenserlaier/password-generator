@@ -8,12 +8,15 @@ pub enum ArgType {
     IncludeSpecial,
     IncludeUcase,
     UseWords,
+    Overwrite,
+    Profile,
     Error,
 }
 #[derive(PartialEq, Debug)]
 pub enum ArgValue {
     Bool(bool),
     Int(usize),
+    String(String),
     Error,
 }
 #[derive(PartialEq, Debug)]
@@ -51,6 +54,12 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
         "--use_dict_words" => {
             ArgType::UseWords
         },
+        "--overwrite" => {
+            ArgType::Overwrite
+        }
+        "--profile" => {
+            ArgType::Profile
+        }
         _ => {
             ArgType::Error
         },
@@ -146,15 +155,14 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
                 Argument::Error => { continue }
             }
         }
-
-
-
     }
     GenerationData::new(Some(minimum_length), 
                         Some(include_numbers), 
                         Some(include_special), 
                         Some(include_ucase), 
-                        Some(use_words))
+                        Some(use_words),
+                        None,
+                        Some(false))
 }
 #[cfg(test)]
 mod tests {

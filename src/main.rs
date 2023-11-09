@@ -8,7 +8,7 @@ fn main() {
     println!("Command line tool for password generation with additional customization and features. Use --help option for more information.");
     match  database::initialize_db(&conn) {
         Ok(_) => {
-            println!("database initialization successful" );
+            println!("database check successful" );
         }
         Err(x) => {
             println!("something went wrong when initializing the database:");
@@ -25,10 +25,11 @@ fn main() {
             println!("--include_spec <bool> : include special characters in password");
             println!("--include_ucase <bool> : include uppercase characters in password");
             println!("--use_dict_words <bool> : use dictionary words instead of random lowercase alphabetic characters");
+            println!("--profile <string> : name of the profile to use. Will pull from local database if such a profile exists");
+            println!("--overwrite <bool> : if using a profile, overwrite its current settings with the other command line options");
             std::process::exit(1)
         }
         let parsed_arguments = cli::parse_args(args);
-        // TODO: tests (ex. cargo run --minlength 8)
         for arg in &parsed_arguments{
             println!("{:?}", arg);
         }
