@@ -9,8 +9,8 @@ pub fn create_connection() -> Connection{
 pub fn initialize_db(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS password_settings (
-            id INTEGER PRIMARY KEY,
-            profile_name TEXT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            profile_name TEXT UNIQUE NOT NULL,
             minimum_length INTEGER DEFAULT 8,
             include_numbers BOOLEAN DEFAULT false,
             include_special BOOLEAN DEFAULT false,
@@ -34,6 +34,38 @@ fn modify_single_setting(conn: &Connection, profile_name: String, col: String, v
         )?;
     Ok(())
 }
+fn insert_user_profile(conn: &Connection, generation_features: generation_logic::GenerationData) -> Result<()> {
+    conn.execute(
+        "INSERT INTO password_settings 
+        (
+        profile_name,
+        minimum_length,
+        include_numbers,
+        include_special,
+        include_ucase,
+        use_words
+        )
+        VALUES (
+        ?1,
+        ?2,
+        ?3,
+        ?4,
+        ?5,
+        ?6
+        )
+        ",
+        &[&(generation_features.profile).unwrap(),
+        &(generation_features.minimum_length.to_string()),
+        &(generation_features.include_numbers.to_string()),
+        &(generation_features.include_special.to_string()),
+        &(generation_features.include_ucase.to_string()),
+        &(generation_features.use_words.to_string())]
+        )?;
+    Ok(())
+}
+
+
+
 fn retrieve_profile_settings(conn: &Connection, profile_name: String) -> Option<generation_logic::GenerationData>{
     let result = conn.query_row(
         "

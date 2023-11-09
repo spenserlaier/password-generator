@@ -20,13 +20,13 @@ pub fn generate_special_char() -> char {
     generate_random_char('!', '~')
 }
 pub struct GenerationData {
-    minimum_length: usize,
-    include_numbers: bool,
-    include_special: bool,
-    include_ucase: bool,
-    use_words: bool,
-    profile: Option<String>,
-    overwrite: bool,
+    pub minimum_length: usize,
+    pub include_numbers: bool,
+    pub include_special: bool,
+    pub include_ucase: bool,
+    pub use_words: bool,
+    pub profile: Option<String>,
+    pub overwrite: bool,
 
 }
 impl GenerationData {
