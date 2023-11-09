@@ -20,7 +20,7 @@ fn main() {
             println!("{}", x)
         }
     }
-    if args.len() >= 2{
+    if args.len() >= 2{ // the first arg is always the executable path
         args.remove(0);
         if args.contains(&String::from("--help")) {
             println!("help arg detected");

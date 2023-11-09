@@ -1,4 +1,6 @@
 use crate::generation_logic::GenerationData;
+use dotenv;
+use std::env;
 #[derive(PartialEq, Debug)]
 pub enum ArgType {
     MinimumLength,
@@ -76,11 +78,37 @@ pub fn parse_args(args: Vec<String>) -> Vec<Argument>{
     parsed_args
 }
 pub fn construct_features_from_arguments(arguments: Vec<Argument>) -> GenerationData {
+    dotenv::dotenv().ok();
     let mut minimum_length = 8;
     let mut include_numbers = false;
     let mut include_special = false;
     let mut include_ucase = false;
     let mut use_words = true;
+    if let Ok(env_min_length) = env::var("MIN_LENGTH"){
+        if let Ok(parsed_min_length) = env_min_length.parse::<usize>(){
+            minimum_length = parsed_min_length;
+        }
+    }
+    if let Ok(env_include_nums) = env::var("INCLUDE_NUMBERS"){
+        if let Ok(parsed_include_nums) = env_include_nums.parse::<bool>(){
+            include_numbers = parsed_include_nums;
+        }
+    }
+    if let Ok(env_include_spec) = env::var("INCLUDE_SPECIAL"){
+        if let Ok(parsed_include_spec) = env_include_spec.parse::<bool>(){
+            include_special = parsed_include_spec;
+        }
+    }
+    if let Ok(env_include_ucase) = env::var("INCLUDE_UCASE"){
+        if let Ok(parsed_include_ucase) = env_include_ucase.parse::<bool>(){
+            include_ucase = parsed_include_ucase;
+        }
+    }
+    if let Ok(env_use_words) = env::var("USE_WORDS"){
+        if let Ok(parsed_use_words) = env_use_words.parse::<bool>(){
+            use_words = parsed_use_words;
+        }
+    }
     for arg in arguments {
         match arg {
             Argument::ParsedArgument(arg_type, arg_val) => {
