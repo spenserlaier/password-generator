@@ -14,8 +14,8 @@ pub fn initialize_db(conn: &Connection) -> Result<()> {
             include_numbers BOOLEAN DEFAULT false,
             include_special BOOLEAN DEFAULT false,
             include_ucase BOOLEAN DEFAULT false,
-            use_words BOOLEAN DEFAULT true
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            use_words BOOLEAN DEFAULT true,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
         []
         )?;

@@ -77,7 +77,7 @@ pub fn parse_args(args: Vec<String>) -> Vec<Argument>{
     }
     parsed_args
 }
-pub fn construct_features_from_arguments(arguments: Vec<Argument>) -> GenerationData {
+pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationData {
     dotenv::dotenv().ok();
     let mut minimum_length = 8;
     let mut include_numbers = false;
@@ -109,41 +109,46 @@ pub fn construct_features_from_arguments(arguments: Vec<Argument>) -> Generation
             use_words = parsed_use_words;
         }
     }
-    for arg in arguments {
-        match arg {
-            Argument::ParsedArgument(arg_type, arg_val) => {
-                if let ArgValue::Bool(boolean_arg) = arg_val {
-                    match arg_type {
-                        ArgType::IncludeNumbers => {
-                            include_numbers = boolean_arg;
-                        },
-                        ArgType::IncludeSpecial => {
-                            include_special = boolean_arg;
-                        },
-                        ArgType::IncludeUcase => {
-                            include_ucase = boolean_arg;
-                        },
-                        ArgType::UseWords => {
-                            use_words = boolean_arg;
-                        },
-                        _ => {
-                            println!("invalid arg value for given arg type");
+    if let Some(arguments) = input_arguments{
+        for arg in arguments {
+            match arg {
+                Argument::ParsedArgument(arg_type, arg_val) => {
+                    if let ArgValue::Bool(boolean_arg) = arg_val {
+                        match arg_type {
+                            ArgType::IncludeNumbers => {
+                                include_numbers = boolean_arg;
+                            },
+                            ArgType::IncludeSpecial => {
+                                include_special = boolean_arg;
+                            },
+                            ArgType::IncludeUcase => {
+                                include_ucase = boolean_arg;
+                            },
+                            ArgType::UseWords => {
+                                use_words = boolean_arg;
+                            },
+                            _ => {
+                                println!("invalid arg value for given arg type");
+                            }
+                        }
+                    }
+                    else if let ArgValue::Int(int_arg) = arg_val {
+                        match arg_type {
+                            ArgType::MinimumLength => {
+                                minimum_length = int_arg;
+                            },
+                            _ => {
+                                println!("invalid arg value for given arg type");
+                            }
                         }
                     }
                 }
-                else if let ArgValue::Int(int_arg) = arg_val {
-                    match arg_type {
-                        ArgType::MinimumLength => {
-                            minimum_length = int_arg;
-                        },
-                        _ => {
-                            println!("invalid arg value for given arg type");
-                        }
-                    }
-                }
+                Argument::Error => { continue }
             }
-            Argument::Error => { continue }
         }
+
+
+
     }
     GenerationData::new(Some(minimum_length), 
                         Some(include_numbers), 
