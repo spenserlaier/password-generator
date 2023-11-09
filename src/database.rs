@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, params};
 use crate::generation_logic;
 
 pub fn create_connection() -> Connection{
@@ -22,7 +22,7 @@ pub fn initialize_db(conn: &Connection) -> Result<()> {
         )?;
     Ok(())
 }
-fn modify_single_setting(conn: &Connection, profile_name: String, col: String, val: String) -> Result<()> {
+fn modify_single_setting(conn: &Connection, profile_name: &String, col: &String, val: &String) -> Result<()> {
     //TODO: 'val' param shouldn't be string; should be enum as outlined in cli module
     conn.execute(
         "UPDATE password_settings (
@@ -30,17 +30,17 @@ fn modify_single_setting(conn: &Connection, profile_name: String, col: String, v
         )
         WHERE profile_name = ?1;
         ",
-        &[&profile_name, &col, &val]
+        &[profile_name, col, val]
         )?;
     Ok(())
 }
-fn delete_user_profile(conn: &Connection, profile_name: String) -> Result<()> {
+fn delete_user_profile(conn: &Connection, profile_name: &String) -> Result<()> {
     //TODO: 'val' param shouldn't be string; should be enum as outlined in cli module
     conn.execute(
         "DELETE FROM password_settings 
         WHERE profile_name = ?1;
         ",
-        &[&profile_name]
+        &[profile_name]
         )?;
     Ok(())
 }
@@ -64,12 +64,21 @@ fn insert_user_profile(conn: &Connection, generation_features: &generation_logic
         ?6
         )
         ",
+        /*
         &[&generation_features.profile.as_ref().unwrap(),
         &(generation_features.minimum_length.to_string()),
         &(generation_features.include_numbers.to_string()),
         &(generation_features.include_special.to_string()),
         &(generation_features.include_ucase.to_string()),
         &(generation_features.use_words.to_string())]
+        */
+        
+        params![generation_features.profile.as_ref().unwrap(),
+        &(generation_features.minimum_length),
+        &(generation_features.include_numbers),
+        &(generation_features.include_special),
+        &(generation_features.include_ucase),
+        &(generation_features.use_words)]
         )?;
     Ok(())
 }
@@ -104,17 +113,22 @@ pub fn retrieve_profile_settings(conn: &Connection, profile_name: &String) -> Op
         }
     );
     match result {
-        Ok(x) => Some(x),
-        _ => None
+        Ok(generation_data) => {Some(generation_data)}
+        Err(x) => {
+            println!("error retrieving user profile: ");
+            println!("{}", x);
+            None
+        }
     }
-
 }
 #[cfg(test)]
 mod tests {
     use super::{
         retrieve_profile_settings,
         create_connection,
-        insert_user_profile
+        insert_user_profile,
+        delete_user_profile,
+        initialize_db,
     };
     use crate::generation_logic::{
         GenerationData
@@ -123,6 +137,7 @@ mod tests {
     #[test]
     fn retrieve_settings_nonexistent_profile_should_return_none() {
         let conn = create_connection();
+        initialize_db(&conn).unwrap();
         let res = retrieve_profile_settings(&conn, &String::from("nonexistent_profile_name"));
         match res{
             None => {},
@@ -132,6 +147,7 @@ mod tests {
     #[test]
     fn insert_new_profile_and_retrieve_settings() {
         let conn = create_connection();
+        initialize_db(&conn).unwrap();
         let default_user = GenerationData::new(None, 
                                                None, 
                                                None, 
@@ -141,6 +157,7 @@ mod tests {
                                                None);
         let insertion_result = insert_user_profile(&conn, &default_user);
         let retrieved_profile = retrieve_profile_settings(&conn, &default_user.profile.as_ref().unwrap()).unwrap();
+        delete_user_profile(&conn, &default_user.profile.as_ref().unwrap()).unwrap(); // clean up afterwards
         assert_eq!(retrieved_profile, default_user);
     }
 }
