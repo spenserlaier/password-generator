@@ -34,7 +34,17 @@ fn modify_single_setting(conn: &Connection, profile_name: String, col: String, v
         )?;
     Ok(())
 }
-fn insert_user_profile(conn: &Connection, generation_features: generation_logic::GenerationData) -> Result<()> {
+fn delete_user_profile(conn: &Connection, profile_name: String) -> Result<()> {
+    //TODO: 'val' param shouldn't be string; should be enum as outlined in cli module
+    conn.execute(
+        "DELETE FROM password_settings 
+        WHERE profile_name = ?1;
+        ",
+        &[&profile_name]
+        )?;
+    Ok(())
+}
+fn insert_user_profile(conn: &Connection, generation_features: &generation_logic::GenerationData) -> Result<()> {
     conn.execute(
         "INSERT INTO password_settings 
         (
@@ -54,7 +64,7 @@ fn insert_user_profile(conn: &Connection, generation_features: generation_logic:
         ?6
         )
         ",
-        &[&(generation_features.profile).unwrap(),
+        &[&generation_features.profile.as_ref().unwrap(),
         &(generation_features.minimum_length.to_string()),
         &(generation_features.include_numbers.to_string()),
         &(generation_features.include_special.to_string()),
@@ -66,7 +76,7 @@ fn insert_user_profile(conn: &Connection, generation_features: generation_logic:
 
 
 
-fn retrieve_profile_settings(conn: &Connection, profile_name: String) -> Option<generation_logic::GenerationData>{
+pub fn retrieve_profile_settings(conn: &Connection, profile_name: &String) -> Option<generation_logic::GenerationData>{
     let result = conn.query_row(
         "
         SELECT * FROM password_settings
@@ -99,6 +109,43 @@ fn retrieve_profile_settings(conn: &Connection, profile_name: String) -> Option<
     }
 
 }
+#[cfg(test)]
+mod tests {
+    use super::{
+        retrieve_profile_settings,
+        create_connection,
+        insert_user_profile
+    };
+    use crate::generation_logic::{
+        GenerationData
+    };
+
+    #[test]
+    fn retrieve_settings_nonexistent_profile_should_return_none() {
+        let conn = create_connection();
+        let res = retrieve_profile_settings(&conn, &String::from("nonexistent_profile_name"));
+        match res{
+            None => {},
+            Some(_) => {panic!();}
+        }
+    }
+    #[test]
+    fn insert_new_profile_and_retrieve_settings() {
+        let conn = create_connection();
+        let default_user = GenerationData::new(None, 
+                                               None, 
+                                               None, 
+                                               None, 
+                                               None, 
+                                               Some(String::from("new_profile_name")), 
+                                               None);
+        let insertion_result = insert_user_profile(&conn, &default_user);
+        let retrieved_profile = retrieve_profile_settings(&conn, &default_user.profile.as_ref().unwrap()).unwrap();
+        assert_eq!(retrieved_profile, default_user);
+    }
+}
+
+
 
 
 

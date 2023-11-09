@@ -19,6 +19,7 @@ pub fn generate_numeric_char() -> char {
 pub fn generate_special_char() -> char {
     generate_random_char('!', '~')
 }
+#[derive(Debug, PartialEq)]
 pub struct GenerationData {
     pub minimum_length: usize,
     pub include_numbers: bool,
@@ -58,6 +59,9 @@ impl GenerationData {
     pub fn generate_password(&self) -> String{
         let mut password = String::new();
         let mut used_words = HashSet::new();
+        if let Some(profile_name) = &self.profile {
+            println!("Generating password based on saved profile: {}", &profile_name);
+        }
         if self.use_words {
             while password.len() < self.minimum_length {
                 let word = random_word::gen(random_word::Lang::En);
