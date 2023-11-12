@@ -11,18 +11,63 @@ pub enum ArgType {
     Overwrite,
     Profile,
     Error,
+    ListProfiles,
+    ProfileInfo,
+    Help,
+    NewProfile,
 }
 #[derive(PartialEq, Debug)]
 pub enum ArgValue {
     Bool(bool),
     Int(usize),
     String(String),
+    NoValue,
     Error,
 }
 #[derive(PartialEq, Debug)]
 pub enum Argument {
     ParsedArgument(ArgType, ArgValue),
     Error
+}
+pub fn is_arg_type(input: &str) -> bool{
+    match input {
+        "--minlength" => {
+            true
+        },
+        "--include_nums" => {
+            true
+        },
+        "--include_spec" => {
+            true
+        },
+        "--include_ucase" => {
+            true
+        },
+        "--use_dict_words" => {
+            true
+        },
+        "--overwrite" => {
+            true
+        }
+        "--profile" => {
+            true
+        }
+        "--help" => {
+            true
+        }
+        "--new_profile" => {
+            true
+        }
+        "--list_profiles" => {
+            true
+        }
+        "--profile_info" => {
+            true
+        }
+        _ => {
+            false
+        },
+    }
 }
 pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
     let parsed_arg_value = match arg_value {
@@ -59,6 +104,18 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
         }
         "--profile" => {
             ArgType::Profile
+        }
+        "--help" => {
+            ArgType::Help
+        }
+        "--new_profile" => {
+            ArgType::NewProfile
+        }
+        "--list_profiles" => {
+            ArgType::ListProfiles
+        }
+        "--profile_info" => {
+            ArgType::ProfileInfo
         }
         _ => {
             ArgType::Error
