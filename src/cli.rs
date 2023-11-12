@@ -1,6 +1,8 @@
+use crate::database;
 use crate::generation_logic::GenerationData;
 use dotenv;
 use std::env;
+use std::process::exit;
 #[derive(PartialEq, Debug)]
 pub enum ArgType {
     MinimumLength,
@@ -29,7 +31,7 @@ pub enum Argument {
     ParsedArgument(ArgType, ArgValue),
     Error
 }
-pub fn is_arg_type(input: &str) -> bool{
+pub fn is_arg(input: &str) -> bool{
     match input {
         "--minlength" => {
             true
@@ -73,13 +75,12 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
     let parsed_arg_value = match arg_value {
         "true" => ArgValue::Bool(true),
         "false" => ArgValue::Bool(false),
+        "" => ArgValue::NoValue,
         x => {
-            if let Ok(parsed_int) = x.parse::<usize>() {
-                ArgValue::Int(parsed_int)
-            }
-            else{
-                ArgValue::Error
-            }
+            ArgValue::String(String::from(x))
+            //TODO: there used to be error handling here because previously the options
+            //couldn't take string arguments-- with string arguments the error handling is_arg
+            //necessarily a bit more limited, but can it be improved from its current state?
         }
     };
     let parsed_arg_type = match arg_type {
@@ -131,15 +132,25 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
 pub fn parse_args(args: Vec<String>) -> Vec<Argument>{
     let mut arg_idx = 0;
     let mut parsed_args: Vec<Argument> = Vec::new();
-    while arg_idx + 1 < args.len() {
+    while arg_idx < args.len() {
+        let mut inc = 1;
         let arg_type = args.get(arg_idx).unwrap();
-        let arg_val = args.get(arg_idx + 1).unwrap();
-        let parsed_argument = parse_single_arg(arg_type, arg_val);
-        if parsed_argument == Argument::Error {
-            println!("error argument propagated to higher level");
+        if arg_idx < args.len() -1 {
+            if !is_arg(args.get(arg_idx + 1).unwrap()){
+                inc = 2;
+                let arg_val = args.get(arg_idx + 1).unwrap();
+                let parsed_argument = parse_single_arg(arg_type, arg_val);
+                if parsed_argument == Argument::Error {
+                    println!("error argument propagated to higher level");
+                }
+                parsed_args.push(parsed_argument);
+            }
+            else{
+                let parsed_argument = parse_single_arg(arg_type, "");
+                parsed_args.push(parsed_argument);
+            }
         }
-        parsed_args.push(parsed_argument);
-        arg_idx += 2;
+        arg_idx += inc;
     }
     parsed_args
 }
@@ -221,6 +232,54 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
                         None,
                         Some(false))
 }
+/// Processes an argument vector and allows for early exit in the case of certain arguments,
+/// like '--help'; avoids the need to process these arguments ahead of time in the 'main' module
+pub fn process_and_execute_args(input_args: Option<Vec<Argument>>) -> GenerationData {
+    match input_args {
+        Some(ref parsed_args) => {
+            for arg in parsed_args {
+                match arg {
+                    Argument::ParsedArgument(ArgType::Help, _) => {
+                        println!("A command line tool to generate a random password with given parameters");
+                        println!("Options:");
+                        println!("--help: print the available command line options");
+                        println!("--minlength <int> : min password length");
+                        println!("--include_nums <bool> : include numbers in password");
+                        println!("--include_spec <bool> : include special characters in password");
+                        println!("--include_ucase <bool> : include uppercase characters in password");
+                        println!("--use_dict_words <bool> : use dictionary words instead of random lowercase alphabetic characters");
+                        println!("--profile <string> : name of the profile to use. Will pull from local database if such a profile exists");
+                        println!("--new_profile <string> store a new profile with the provided settings using the given name");
+                        println!("--overwrite <bool> : if using a profile, overwrite its current settings with the other command line options");
+                        println!("--list_profiles : prints a list of available profiles");
+                        println!("--profile_info <string> : prints the provided profile's settings, if the profile exists.");
+                        exit(1);
+                    }
+                    Argument::ParsedArgument(ArgType::ListProfiles, _) => {
+                        println!("placeholder for listing all profile names");
+                        let conn = database::create_connection();
+                        database::print_profiles(&conn);
+                        conn.close().unwrap();
+                        exit(1);
+                    }
+                    Argument::ParsedArgument(ArgType::ProfileInfo, ArgValue::String(profile_name)) => {
+                        let conn = database::create_connection();
+                        database::print_single_profile(&conn, &profile_name);
+                        conn.close().unwrap();
+                        exit(1);
+                    }
+                    _ => {
+                        continue;
+                    }
+                }
+            }
+            construct_features(input_args)
+        }
+        None => {
+            construct_features(None)
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::{
@@ -230,6 +289,9 @@ mod tests {
         parse_single_arg,
         parse_args
     };
+    //TODO: include a test for options that don't take arguments, like --help: make sure it's
+    //properly recognized. 
+    //TODO: include a test for combinations of non-argument-taking and argument-taking options
 
     #[test]
     fn parse_single_argument() {

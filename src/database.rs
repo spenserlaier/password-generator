@@ -35,7 +35,6 @@ fn modify_single_setting(conn: &Connection, profile_name: &String, col: &String,
     Ok(())
 }
 fn delete_user_profile(conn: &Connection, profile_name: &String) -> Result<()> {
-    //TODO: 'val' param shouldn't be string; should be enum as outlined in cli module
     conn.execute(
         "DELETE FROM password_settings 
         WHERE profile_name = ?1;
@@ -43,6 +42,23 @@ fn delete_user_profile(conn: &Connection, profile_name: &String) -> Result<()> {
         &[profile_name]
         )?;
     Ok(())
+}
+pub fn print_single_profile(conn: &Connection, profile_name: &String) {
+    let profile_settings = retrieve_profile_settings(&conn, profile_name);
+    match profile_settings {
+        Some(profile_settings) => {
+            println!("Printing settings for profile: {}", profile_name);
+            println!("Minimum length: {}", profile_settings.minimum_length);
+            println!("Includes numbers? : {}", profile_settings.include_numbers);
+            println!("Includes special characters? : {}", profile_settings.include_special);
+            println!("Includes uppercase characters? : {}", profile_settings.include_ucase);
+            println!("Uses dictionary words instead of random lowercase alphabetic chars? : {}",
+                     profile_settings.use_words);
+        }
+        None => {
+            println!("Could not find the specified profile for printing.")
+        }
+    }
 }
 fn insert_user_profile(conn: &Connection, generation_features: &generation_logic::GenerationData) -> Result<()> {
     conn.execute(
@@ -64,15 +80,6 @@ fn insert_user_profile(conn: &Connection, generation_features: &generation_logic
         ?6
         )
         ",
-        /*
-        &[&generation_features.profile.as_ref().unwrap(),
-        &(generation_features.minimum_length.to_string()),
-        &(generation_features.include_numbers.to_string()),
-        &(generation_features.include_special.to_string()),
-        &(generation_features.include_ucase.to_string()),
-        &(generation_features.use_words.to_string())]
-        */
-        
         params![generation_features.profile.as_ref().unwrap(),
         &(generation_features.minimum_length),
         &(generation_features.include_numbers),
