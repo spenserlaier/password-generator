@@ -1,5 +1,7 @@
 use random_word;
 use std::collections::HashSet;
+use std::process::exit;
+use crate::database;
 use rand;
 use rand::Rng;
 pub fn generate_random_char(start: char, end:char) -> char {
@@ -56,11 +58,29 @@ impl GenerationData {
             overwrite
         }
     }
-    pub fn generate_password(&self) -> String{
+    pub fn generate_password(&mut self) -> String{
         let mut password = String::new();
         let mut used_words = HashSet::new();
         if let Some(profile_name) = &self.profile {
             println!("Generating password based on saved profile: {}", &profile_name);
+            let db_conn = database::create_connection();
+            let user_profile = database::retrieve_profile_settings(&db_conn, profile_name);
+            match user_profile {
+                Some(profile) => {
+                    println!("Profile settings retrieved successfully. Preparing to generate password...");
+                    self.minimum_length = profile.minimum_length;
+                    self.include_numbers = profile.include_numbers;
+                    self.include_special = profile.include_special;
+                    self.include_ucase = profile.include_ucase;
+                    self.use_words = profile.use_words;
+                    self.overwrite = profile.overwrite;
+                }
+                None => {
+                    println!("Failed to retrieve profile settings. Double-check the profile name.");
+                    println!("You can use the '--list_profiles' option to view a list of profiles.");
+                    exit(1);
+                }
+            }
         }
         if self.use_words {
             while password.len() < self.minimum_length {

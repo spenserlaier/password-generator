@@ -82,6 +82,15 @@ fn insert_user_profile(conn: &Connection, generation_features: &generation_logic
         )?;
     Ok(())
 }
+pub fn print_profiles(conn: &Connection) {
+    let mut statement = conn.prepare("SELECT profile_name FROM password_settings;").unwrap();
+    let profile_iter = statement.query_map([], |row| {
+        Ok(row.get::<_, String>(0)?)
+    }).unwrap();
+    for profile in profile_iter {
+        println!("{}", profile.unwrap());
+    }
+}
 
 
 
@@ -129,6 +138,7 @@ mod tests {
         insert_user_profile,
         delete_user_profile,
         initialize_db,
+        print_profiles,
     };
     use crate::generation_logic::{
         GenerationData
@@ -157,6 +167,7 @@ mod tests {
                                                None);
         let insertion_result = insert_user_profile(&conn, &default_user);
         let retrieved_profile = retrieve_profile_settings(&conn, &default_user.profile.as_ref().unwrap()).unwrap();
+        print_profiles(&conn);
         delete_user_profile(&conn, &default_user.profile.as_ref().unwrap()).unwrap(); // clean up afterwards
         assert_eq!(retrieved_profile, default_user);
     }
