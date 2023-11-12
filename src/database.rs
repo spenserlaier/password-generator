@@ -60,7 +60,7 @@ pub fn print_single_profile(conn: &Connection, profile_name: &String) {
         }
     }
 }
-fn insert_user_profile(conn: &Connection, generation_features: &generation_logic::GenerationData) -> Result<()> {
+pub fn insert_user_profile(conn: &Connection, generation_features: &generation_logic::GenerationData) -> Result<()> {
     conn.execute(
         "INSERT INTO password_settings 
         (

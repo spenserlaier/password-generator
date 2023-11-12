@@ -193,11 +193,22 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
             use_words = parsed_use_words;
         }
     }
+    let mut save_data = false;
+    let mut new_profile: Option<String> = None;
     if let Some(arguments) = input_arguments{
         for arg in arguments {
             match arg {
                 Argument::ParsedArgument(arg_type, arg_val) => {
-                    if let ArgValue::Bool(boolean_arg) = arg_val {
+                    if let ArgValue::String(string_arg) = arg_val {
+                        match arg_type {
+                            ArgType::NewProfile => {
+                                save_data = true;
+                                new_profile = Some(string_arg);
+                            }
+                            _ => {}
+                        }
+                    }
+                    else if let ArgValue::Bool(boolean_arg) = arg_val {
                         match arg_type {
                             ArgType::IncludeNumbers => {
                                 include_numbers = boolean_arg;
@@ -231,13 +242,31 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
             }
         }
     }
-    GenerationData::new(Some(minimum_length), 
+    let mut generation_data = GenerationData::new(Some(minimum_length), 
                         Some(include_numbers), 
                         Some(include_special), 
                         Some(include_ucase), 
                         Some(use_words),
                         None,
-                        Some(false))
+                        Some(false));
+    if save_data == true {
+        println!("Saving current settings to user profile with the name: {}", new_profile.as_ref().unwrap());
+        //TODO: take into account the --override option. if the user already exists and the
+        //override option isn't set, then don't overwrite the profile with that particular name
+        generation_data.profile = new_profile;
+        let conn = database::create_connection();
+        let result = database::insert_user_profile(&conn, &generation_data);
+        match result {
+            Ok(_) => {
+                println!("Successfully saved profile");
+            }
+            Err(_) => {
+                println!("Error saving profile.");
+            }
+        }
+        conn.close().unwrap();
+    }
+    generation_data
 }
 /// Processes an argument vector and allows for early exit in the case of certain arguments,
 /// like '--help'; avoids the need to process these arguments ahead of time in the 'main' module
@@ -275,6 +304,14 @@ pub fn process_and_execute_args(input_args: Option<Vec<Argument>>) -> Generation
                         conn.close().unwrap();
                         exit(1);
                     }
+                    /*
+                    Argument::ParsedArgument(ArgType::NewProfile, ArgValue::String(profile_name)) => {
+                        let conn = database::create_connection();
+                        database::print_single_profile(&conn, &profile_name);
+                        conn.close().unwrap();
+                        exit(1);
+                    }
+                    */
                     _ => {
                         continue;
                     }
