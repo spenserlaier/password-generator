@@ -77,10 +77,12 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
         "false" => ArgValue::Bool(false),
         "" => ArgValue::NoValue,
         x => {
-            ArgValue::String(String::from(x))
-            //TODO: there used to be error handling here because previously the options
-            //couldn't take string arguments-- with string arguments the error handling is_arg
-            //necessarily a bit more limited, but can it be improved from its current state?
+            if let Ok(parsed_usize) = x.parse::<usize>() {
+                ArgValue::Int(parsed_usize)
+            }
+            else{
+                ArgValue::String(String::from(x))
+            }
         }
     };
     let parsed_arg_type = match arg_type {
@@ -137,6 +139,7 @@ pub fn parse_args(args: Vec<String>) -> Vec<Argument>{
         let arg_type = args.get(arg_idx).unwrap();
         if arg_idx < args.len() -1 {
             if !is_arg(args.get(arg_idx + 1).unwrap()){
+                //if it isn't an argument type like --help, then try to parse a value from it
                 inc = 2;
                 let arg_val = args.get(arg_idx + 1).unwrap();
                 let parsed_argument = parse_single_arg(arg_type, arg_val);
@@ -149,6 +152,10 @@ pub fn parse_args(args: Vec<String>) -> Vec<Argument>{
                 let parsed_argument = parse_single_arg(arg_type, "");
                 parsed_args.push(parsed_argument);
             }
+        }
+        else{
+            let parsed_argument = parse_single_arg(arg_type, "");
+            parsed_args.push(parsed_argument);
         }
         arg_idx += inc;
     }
@@ -291,6 +298,14 @@ mod tests {
     };
     //TODO: include a test for options that don't take arguments, like --help: make sure it's
     //properly recognized. 
+    #[test]
+    fn detect_help_argument() {
+        let help_arg = parse_single_arg("--help", "");
+        assert_eq!(help_arg, Argument::ParsedArgument(ArgType::Help, ArgValue::NoValue));
+        let args_vec = vec![String::from("--help")];
+        let parsed_help_arg_vec = parse_args(args_vec);
+        assert_eq!(vec![help_arg], parsed_help_arg_vec);
+    }
     //TODO: include a test for combinations of non-argument-taking and argument-taking options
 
     #[test]
