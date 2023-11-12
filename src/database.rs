@@ -61,7 +61,7 @@ pub fn print_single_profile(conn: &Connection, profile_name: &String) {
     }
 }
 pub fn insert_user_profile(conn: &Connection, generation_features: &generation_logic::GenerationData) -> Result<()> {
-    conn.execute(
+    let result = conn.execute(
         "INSERT INTO password_settings 
         (
         profile_name,
@@ -86,7 +86,13 @@ pub fn insert_user_profile(conn: &Connection, generation_features: &generation_l
         &(generation_features.include_special),
         &(generation_features.include_ucase),
         &(generation_features.use_words)]
-        )?;
+        );
+    match result {
+        Ok(x) => {}
+        Err(x) => {
+            println!("error when inserting into database: {}", x);
+        }
+    }
     Ok(())
 }
 pub fn print_profiles(conn: &Connection) {

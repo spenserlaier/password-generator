@@ -106,6 +106,7 @@ pub fn parse_single_arg(arg_type: &str, arg_value: &str) -> Argument{
             ArgType::Overwrite
         }
         "--profile" => {
+            //TODO: check if we actually use this anywhere;
             ArgType::Profile
         }
         "--help" => {
@@ -195,6 +196,8 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
     }
     let mut save_data = false;
     let mut new_profile: Option<String> = None;
+    let mut existing_profile: Option<String> = None;
+    let mut use_existing_profile = false;
     if let Some(arguments) = input_arguments{
         for arg in arguments {
             match arg {
@@ -204,6 +207,10 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
                             ArgType::NewProfile => {
                                 save_data = true;
                                 new_profile = Some(string_arg);
+                            }
+                            ArgType::Profile => {
+                                use_existing_profile = true;
+                                existing_profile = Some(string_arg);
                             }
                             _ => {}
                         }
@@ -266,6 +273,12 @@ pub fn construct_features(input_arguments: Option<Vec<Argument>>) -> GenerationD
         }
         conn.close().unwrap();
     }
+    else if use_existing_profile == true {
+        let conn = database::create_connection();
+        let profile_settings = database::retrieve_profile_settings(&conn, &existing_profile.unwrap());
+        conn.close().unwrap();
+        return profile_settings.unwrap()
+    }
     generation_data
 }
 /// Processes an argument vector and allows for early exit in the case of certain arguments,
@@ -292,7 +305,6 @@ pub fn process_and_execute_args(input_args: Option<Vec<Argument>>) -> Generation
                         exit(1);
                     }
                     Argument::ParsedArgument(ArgType::ListProfiles, _) => {
-                        println!("placeholder for listing all profile names");
                         let conn = database::create_connection();
                         database::print_profiles(&conn);
                         conn.close().unwrap();
