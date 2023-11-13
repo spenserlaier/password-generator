@@ -1,15 +1,15 @@
 # password-generator
 A rust command line utility for randomly generating passwords.
 ## Options
-`--help`: print the available command line options"
+`--help`: print the available command line options
 
-`--minlength <int>` : min password length"
+`--minlength <int>` : min password length
 
-`--include_nums <bool` : include numbers in password"
+`--include_nums <bool` : include numbers in password
 
-`--include_spec <bool>` : include special characters in password"
+`--include_spec <bool>` : include special characters in password
 
-`--include_ucase <bool>` : include uppercase characters in password"
+`--include_ucase <bool>` : include uppercase characters in password
 
 `--use_dict_words <bool>` : use dictionary words instead of random lowercase alphabetic characters
 
