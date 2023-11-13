@@ -1,5 +1,5 @@
 # password-generator
-A rust command line utility for randomly generating passwords.
+A rust command line utility for randomly generating passwords. Also supports simple profiles that save the settings used for better ease-of-use.
 ## Options
 `--help`: print the available command line options
 
